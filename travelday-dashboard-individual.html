@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Minhas Vendas · Travel Day</title>
+<style>
+  :root{
+    --bg:#F6F3EC; --ink:#1A1710; --ink-soft:#6B6357; --card:#FFFFFF; --card-border:#E7E0D2;
+    --gold:#12897E; --gold-deep:#0D685F; --green:#1E7145; --green-bg:#E7F3EC;
+    --red:#B23A2E; --red-bg:#FBEAE7; --amber:#A66A00; --amber-bg:#FBF1DE; --line:#E7E0D2; --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:900px;margin:0 auto;padding:28px 22px 80px;}
+  header.top{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:6px;}
+  .brand{display:flex;align-items:baseline;gap:10px;}
+  .brand .mark{font-family:"Georgia",serif;font-weight:700;font-size:22px;}
+  .brand .sub{color:var(--ink-soft);font-size:14px;}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  select, input[type=text]{font-family:inherit;font-size:14px;padding:9px 12px;border-radius:10px;border:1px solid var(--card-border);background:var(--card);color:var(--ink);}
+  button{font-family:inherit;font-size:14px;padding:9px 16px;border-radius:10px;border:none;background:var(--gold);color:#fff;cursor:pointer;font-weight:600;}
+  button:hover{background:var(--gold-deep);}
+  button.ghost{background:transparent;border:1px solid var(--card-border);color:var(--ink);}
+  button.ghost:hover{background:var(--card-border);}
+  .tabs{display:flex;gap:6px;margin:22px 0 20px;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+  .tab{padding:10px 16px;font-size:14px;font-weight:600;color:var(--ink-soft);cursor:pointer;border-bottom:2px solid transparent;}
+  .tab.active{color:var(--ink);border-bottom-color:var(--gold);}
+  .view{display:none;}
+  .view.active{display:block;}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:10px;}
+  .kpi{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);padding:18px;}
+  .kpi .label{font-size:12.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:8px;}
+  .kpi .value{font-size:26px;font-weight:700;font-family:"Georgia",serif;}
+  .kpi .meta{font-size:13px;color:var(--ink-soft);margin-top:6px;}
+  .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700;margin-left:6px;}
+  .pill.ok{background:var(--green-bg);color:var(--green);}
+  .pill.warn{background:var(--amber-bg);color:var(--amber);}
+  .pill.bad{background:var(--red-bg);color:var(--red);}
+  .section-title{font-family:"Georgia",serif;font-size:19px;font-weight:700;margin:26px 0 12px;}
+  .card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);padding:6px;overflow:hidden;}
+  table{width:100%;border-collapse:collapse;font-size:14px;}
+  th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:0.03em;color:var(--ink-soft);padding:12px 14px;border-bottom:1px solid var(--line);}
+  td{padding:12px 14px;border-bottom:1px solid var(--line);}
+  tr:last-child td{border-bottom:none;}
+  .bar-outer{width:100%;height:8px;background:#EFE9DC;border-radius:99px;overflow:hidden;margin-top:8px;}
+  .bar-inner{height:100%;border-radius:99px;background:var(--gold);}
+  .config-card{background:var(--card);border:1px solid var(--card-border);border-radius:var(--radius);padding:20px;margin-bottom:16px;}
+  .config-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px;}
+  .config-row:last-child{border-bottom:none;}
+  .muted{color:var(--ink-soft);font-size:13px;line-height:1.6;}
+  code{background:#EFE9DC;padding:2px 6px;border-radius:5px;font-size:12.5px;}
+  .status{font-size:13px;padding:10px 14px;border-radius:10px;margin-top:10px;}
+  .status.ok{background:var(--green-bg);color:var(--green);}
+  .status.err{background:var(--red-bg);color:var(--red);}
+  .status.idle{background:var(--amber-bg);color:var(--amber);}
+  .empty{padding:28px;text-align:center;color:var(--ink-soft);font-size:14px;}
+  footer{margin-top:50px;color:var(--ink-soft);font-size:12.5px;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="gate" class="config-card" style="display:none;">
+    <div class="section-title" style="margin-top:0;">Quem é você?</div>
+    <p class="muted">Escolha seu nome pra abrir seu painel. Depois disso, guarde o link que aparece na barra de endereço, ele já abre direto no seu painel da próxima vez.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <select id="selQuemSou">
+        <option value="">Selecione</option>
+        <option value="Amanda">Amanda</option>
+        <option value="Marília">Marília</option>
+        <option value="Isabela">Isabela</option>
+        <option value="Najla">Najla</option>
+        <option value="Nathalia">Nathalia</option>
+      </select>
+      <button id="btnEntrar">Entrar</button>
+    </div>
+  </div>
+
+  <div id="painel" style="display:none;">
+  <header class="top">
+    <div class="brand"><span class="mark">Travel Day</span><span class="sub" id="subName">· Minhas Vendas</span></div>
+    <div class="controls">
+      <select id="selMes"></select>
+      <select id="selAno"></select>
+      <button class="ghost" id="btnAtualizar">↻ Atualizar</button>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <div class="tab active" data-view="visao">📊 Meu Resultado</div>
+    <div class="tab" data-view="vendas">🧾 Minhas Vendas</div>
+    <div class="tab" data-view="config">⚙️ Configuração</div>
+  </div>
+
+  <!-- VISÃO -->
+  <div class="view active" id="view-visao">
+    <div class="kpis">
+      <div class="kpi">
+        <div class="label" id="lblVendido">Vendido no mês</div>        <div class="value" id="kpiVendido">R$ 0</div>
+        <div class="meta" id="kpiMeta">Meta: R$ 0</div>
+        <div class="bar-outer"><div class="bar-inner" id="barAting" style="width:0%"></div></div>
+      </div>
+      <div class="kpi">
+        <div class="label" id="lblAting">Atingimento da meta</div>
+        <div class="value" id="kpiAting">0%</div>
+        <div class="meta" id="kpiFaixa">&nbsp;</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Minha comissão do mês</div>
+        <div class="value" id="kpiComissao">R$ 0</div>
+        <div class="meta" id="kpiComissaoDet">&nbsp;</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Bônus coletivo</div>
+        <div class="value" id="kpiBonus">R$ 0</div>
+        <div class="meta" id="kpiBonusDet">Depende do time bater a meta coletiva</div>
+      </div>
+    </div>
+    <div class="section-title" id="tituloTotalReceber">Total a receber de comissão no mês</div>
+    <div class="card" style="padding:18px;">
+      <div class="value" id="kpiTotalReceber" style="font-size:28px;font-weight:700;font-family:Georgia,serif;">R$ 0</div>
+      <div class="muted">Comissão + bônus coletivo, se aplicável</div>
+    </div>
+  </div>
+
+  <!-- VENDAS -->
+  <div class="view" id="view-vendas">
+    <div class="section-title">Minhas vendas do mês</div>
+    <div class="card">
+      <table id="tblVendas">
+        <thead><tr><th>Data</th><th>Cliente</th><th>Valor</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CONFIG -->
+  <div class="view" id="view-config">
+    <div class="config-card">
+      <div class="section-title" style="margin-top:0;">🔗 Conectar com o Google Sheets</div>
+      <p class="muted">Mesma planilha usada no painel geral do time. Cole o ID abaixo (encontrado na URL da planilha).</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <input type="text" id="sheetIdInput" placeholder="ID da planilha" style="flex:1;min-width:260px;" />
+        <button id="btnConectar">Salvar e conectar</button>
+      </div>
+      <div class="status idle" id="connStatus">Nenhuma planilha conectada ainda.</div>
+    </div>
+    <div class="config-card">
+      <div class="section-title" style="margin-top:0;">Minha regra de comissão</div>
+      <div id="regrasBox"></div>
+    </div>
+  </div>
+
+  <footer>Travel Day · painel comercial</footer>
+  </div>
+</div>
+
+<script>
+// ======= O nome vem do link (?nome=Isabela). Sem isso, mostra uma tela de seleção. =======
+const NOMES_VALIDOS = ["Amanda","Marília","Isabela","Najla","Nathalia"];
+const params = new URLSearchParams(window.location.search);
+let MEU_NOME = params.get("nome") || localStorage.getItem("td_meu_nome") || "";
+if(MEU_NOME && !NOMES_VALIDOS.includes(MEU_NOME)) MEU_NOME = "";
+
+const MESES = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+let sheetId = "";
+let vendas = [];
+let metas = [];
+let config = {opcao:1, bonusFixo:750, bonusColetivo100:1, bonusColetivo110:2};
+let metaColetivaCache = 0;
+let totalTimeCache = 0;
+
+const fmtR = v => "R$ " + (v||0).toLocaleString("pt-BR",{minimumFractionDigits:0,maximumFractionDigits:0});
+const fmtP = v => (v*100).toFixed(0) + "%";
+
+function abrirPainel(nome){
+  MEU_NOME = nome;
+  localStorage.setItem("td_meu_nome", nome);
+  sheetId = localStorage.getItem("td_sheet_id_" + MEU_NOME) || localStorage.getItem("td_sheet_id") || "";
+
+  document.getElementById("gate").style.display = "none";
+  document.getElementById("painel").style.display = "block";
+  document.getElementById("subName").textContent = "· " + MEU_NOME;
+  document.title = "Minhas Vendas · " + MEU_NOME;
+
+  // deixa o link já pronto pra guardar/enviar com o nome embutido
+  const url = new URL(window.location.href);
+  url.searchParams.set("nome", MEU_NOME);
+  window.history.replaceState({}, "", url);
+
+  initSelectors();
+  if(sheetId){ document.getElementById("sheetIdInput").value = sheetId; loadAll(); }
+}
+
+function initSelectors(){
+  const selMes = document.getElementById("selMes");
+  MESES.forEach((m,i)=>{
+    const opt = document.createElement("option");
+    opt.value = i; opt.textContent = m;
+    selMes.appendChild(opt);
+  });
+  const now = new Date();
+  selMes.value = now.getMonth();
+  const selAno = document.getElementById("selAno");
+  const anoAtual = now.getFullYear();
+  for(let a=anoAtual-1; a<=anoAtual+1; a++){
+    const opt = document.createElement("option");
+    opt.value = a; opt.textContent = a;
+    if(a===anoAtual) opt.selected = true;
+    selAno.appendChild(opt);
+  }
+}
+
+function gvizUrl(sheetName){
+  return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+}
+async function fetchSheetRows(sheetName){
+  const res = await fetch(gvizUrl(sheetName));
+  const text = await res.text();
+  const json = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}")+1));
+  return json.table.rows.map(r => r.c.map(c => c ? (c.f !== undefined ? c.f : c.v) : ""));
+}
+function parseValorBR(v){
+  if(typeof v === "number") return v;
+  if(!v) return 0;
+  return parseFloat(String(v).replace(/\./g,"").replace(",",".")) || parseFloat(v) || 0;
+}
+function setStatus(kind,msg){
+  const el = document.getElementById("connStatus");
+  el.className = "status " + kind;
+  el.textContent = msg;
+}
+
+async function loadAll(){
+  if(!sheetId){ setStatus("idle","Nenhuma planilha conectada ainda."); return; }
+  setStatus("idle","Carregando dados...");
+  try{
+    const [vRows, mRows, cRows] = await Promise.all([
+      fetchSheetRows("Vendas"), fetchSheetRows("Metas"), fetchSheetRows("Config"),
+    ]);
+    vendas = vRows.filter(r=>r[0]).map(r=>{
+      const dataStr = String(r[0]);
+      const [dia,mes,ano] = dataStr.split("/");
+      return { data: dataStr, mesIdx: parseInt(mes,10)-1, ano: parseInt(ano,10), consultora: r[1], cliente: r[2], valor: parseValorBR(r[3]), receita: parseValorBR(r[4]) };
+    });
+    metas = mRows.filter(r=>r[1]).map(r=>({
+      ano: parseInt(r[0],10), mes: r[1],
+      marilia: parseValorBR(r[2]), isabela: parseValorBR(r[3]), najla: parseValorBR(r[4]), naty: parseValorBR(r[5]),
+      amanda: parseValorBR(r[6]),
+    }));
+    config = {opcao:1, bonusFixo:750, bonusColetivo100:1, bonusColetivo110:2};
+    cRows.forEach(r=>{
+      const k = String(r[0]||"").toLowerCase();
+      const val = parseValorBR(r[1]);
+      if(k.includes("opção") || k.includes("opcao")) config.opcao = val;
+      else if(k.includes("bônus fixo") || k.includes("bonus fixo")) config.bonusFixo = val;
+      else if(k.includes("100")) config.bonusColetivo100 = val;
+      else if(k.includes("110")) config.bonusColetivo110 = val;
+    });
+    setStatus("ok", "Conectado.");
+    renderRegras();
+    render();
+  }catch(e){
+    console.error(e);
+    setStatus("err","Não consegui carregar a planilha. Confirme o ID e o compartilhamento.");
+  }
+}
+
+function currentMesAno(){
+  const mesIdx = parseInt(document.getElementById("selMes").value,10);
+  const ano = parseInt(document.getElementById("selAno").value,10);
+  return {mesIdx, ano, mesNome: MESES[mesIdx]};
+}
+
+function metaDeMesPessoa(metaMes){
+  if(!metaMes) return 0;
+  const map = {Marília:metaMes.marilia, Isabela:metaMes.isabela, Najla:metaMes.najla, Nathalia:metaMes.naty, Amanda:metaMes.amanda};
+  return map[MEU_NOME] || 0;
+}
+
+function comissaoOpcao1(vendido, atingimento){
+  if(atingimento < 0.6) return {valor:0, faixa:"Abaixo de 60%, sem comissão"};
+  if(atingimento < 1.0) return {valor: vendido*0.03, faixa:"60% a 99% da meta, 3% sobre vendido"};
+  let v = vendido*0.05;
+  if(atingimento >= 1.2){ v += config.bonusFixo; return {valor:v, faixa:"Acima de 120%, 5% + bônus fixo de "+fmtR(config.bonusFixo)}; }
+  return {valor:v, faixa:"100% ou mais da meta, 5% sobre vendido"};
+}
+function comissaoOpcao2(receita, atingimento){
+  const isMarilia = MEU_NOME === "Marília";
+  const baixo = isMarilia ? 0.20 : 0.30;
+  const cheio = isMarilia ? 0.30 : 0.40;
+  if(atingimento < 0.6) return {valor:0, faixa:"Abaixo de 60%, sem comissão"};
+  if(atingimento < 1.0) return {valor: receita*baixo, faixa:`60% a 99% da meta, ${(baixo*100).toFixed(0)}% sobre a comissão da agência`};
+  let v = receita*cheio;
+  if(atingimento >= 1.2){ v += config.bonusFixo; return {valor:v, faixa:`Acima de 120%, ${(cheio*100).toFixed(0)}% + bônus fixo de ${fmtR(config.bonusFixo)}`}; }
+  return {valor:v, faixa:`100% ou mais da meta, ${(cheio*100).toFixed(0)}% sobre a comissão da agência`};
+}
+
+function renderRegras(){
+  const isMarilia = MEU_NOME === "Marília";
+  const box = document.getElementById("regrasBox");
+  if(MEU_NOME === "Amanda"){
+    box.innerHTML = `
+      <div class="config-row"><span>Comissão</span><span>Não se aplica, você é a proprietária</span></div>
+      <div class="config-row"><span>Meta</span><span>Acompanhada igual às demais, sem comissão vinculada</span></div>
+    `;
+    return;
+  }
+  if(config.opcao == 2){
+    const baixo = isMarilia ? 20 : 30;
+    const cheio = isMarilia ? 30 : 40;
+    box.innerHTML = `
+      <div class="config-row"><span>Opção ativa</span><span>2, sobre a comissão da agência</span></div>
+      <div class="config-row"><span>Abaixo de 60% da meta</span><span>Sem comissão</span></div>
+      <div class="config-row"><span>60% a 99% da meta</span><span>${baixo}%</span></div>
+      <div class="config-row"><span>100% ou mais da meta</span><span>${cheio}%</span></div>
+      <div class="config-row"><span>Acima de 120% da meta</span><span>${cheio}% + bônus fixo de ${fmtR(config.bonusFixo)}</span></div>
+    `;
+  } else {
+    box.innerHTML = `
+      <div class="config-row"><span>Opção ativa</span><span>1, sobre o valor vendido</span></div>
+      <div class="config-row"><span>Abaixo de 60% da meta</span><span>Sem comissão</span></div>
+      <div class="config-row"><span>60% a 99% da meta</span><span>3%</span></div>
+      <div class="config-row"><span>100% ou mais da meta</span><span>5%</span></div>
+      <div class="config-row"><span>Acima de 120% da meta</span><span>5% + bônus fixo de ${fmtR(config.bonusFixo)}</span></div>
+    `;
+  }
+}
+
+function render(){
+  const {mesIdx, ano, mesNome} = currentMesAno();
+  const metaMes = metas.find(m=>m.mes===mesNome && m.ano===ano);
+  const vendasMesTodas = vendas.filter(v=>v.mesIdx===mesIdx && v.ano===ano);
+  const vendasMes = vendasMesTodas.filter(v=>v.consultora===MEU_NOME);
+  const vendido = vendasMes.reduce((s,v)=>s+v.valor,0);
+
+  const cardComissao = document.getElementById("kpiComissao").closest(".kpi");
+  const cardBonus = document.getElementById("kpiBonus").closest(".kpi");
+  const cardTotalReceber = document.getElementById("kpiTotalReceber").closest(".card");
+  const tituloTotalReceber = document.getElementById("tituloTotalReceber");
+
+  if(MEU_NOME === "Amanda"){
+    const meta = metaDeMesPessoa(metaMes);
+    const ating = meta ? vendido/meta : 0;
+
+    document.getElementById("lblVendido").textContent = "Vendido no mês";
+    document.getElementById("lblAting").textContent = "Atingimento da meta";
+    document.getElementById("kpiVendido").textContent = fmtR(vendido);
+    document.getElementById("kpiMeta").textContent = `Meta: ${fmtR(meta)}`;
+    document.getElementById("barAting").style.width = Math.min(ating*100,100)+"%";
+    document.getElementById("kpiAting").textContent = fmtP(ating);
+
+    if(cardComissao) cardComissao.style.display = "none";
+    if(cardBonus) cardBonus.style.display = "none";
+    if(cardTotalReceber) cardTotalReceber.style.display = "none";
+    if(tituloTotalReceber) tituloTotalReceber.style.display = "none";
+  } else {
+    document.getElementById("lblVendido").textContent = "Vendido no mês";
+    document.getElementById("lblAting").textContent = "Atingimento da meta";
+    if(cardComissao) cardComissao.style.display = "";
+    if(cardBonus) cardBonus.style.display = "";
+    if(cardTotalReceber) cardTotalReceber.style.display = "";
+    if(tituloTotalReceber) tituloTotalReceber.style.display = "";
+
+    const meta = metaDeMesPessoa(metaMes);
+    const receita = vendasMes.reduce((s,v)=>s+v.receita,0);
+    const ating = meta ? vendido/meta : 0;
+
+    const CONSULTORAS = ["Marília","Isabela","Najla","Nathalia"];
+    const totalTime = vendasMesTodas.filter(v=>CONSULTORAS.includes(v.consultora)).reduce((s,v)=>s+v.valor,0);
+    const metaColetiva = metaMes ? (metaMes.marilia+metaMes.isabela+metaMes.najla+metaMes.naty) : 0;
+    const atingColetivo = metaColetiva ? totalTime/metaColetiva : 0;
+
+    document.getElementById("kpiVendido").textContent = fmtR(vendido);
+    document.getElementById("kpiMeta").textContent = `Meta: ${fmtR(meta)}`;
+    document.getElementById("barAting").style.width = Math.min(ating*100,100)+"%";
+    document.getElementById("kpiAting").textContent = fmtP(ating);
+
+    const resultado = config.opcao == 2 ? comissaoOpcao2(receita, ating) : comissaoOpcao1(vendido, ating);
+    document.getElementById("kpiFaixa").textContent = resultado.faixa;
+    document.getElementById("kpiComissao").textContent = fmtR(resultado.valor);
+    document.getElementById("kpiComissaoDet").textContent = config.opcao==2 ? "Sobre a comissão da agência" : "Sobre o valor vendido";
+
+    let bonusColetivo = 0;
+    if(atingColetivo >= 1.1){ bonusColetivo = vendido*(config.bonusColetivo110/100); document.getElementById("kpiBonusDet").textContent = `Time bateu 110%+ da meta coletiva: +${config.bonusColetivo110}%`; }
+    else if(atingColetivo >= 1.0){ bonusColetivo = vendido*(config.bonusColetivo100/100); document.getElementById("kpiBonusDet").textContent = `Time bateu a meta coletiva: +${config.bonusColetivo100}%`; }
+    else { document.getElementById("kpiBonusDet").textContent = "Time ainda não bateu a meta coletiva este mês"; }
+    document.getElementById("kpiBonus").textContent = fmtR(bonusColetivo);
+    document.getElementById("kpiTotalReceber").textContent = fmtR(resultado.valor + bonusColetivo);
+  }
+
+  const tblBody = document.querySelector("#tblVendas tbody");
+  tblBody.innerHTML = "";
+  if(vendasMes.length === 0){
+    tblBody.innerHTML = `<tr><td colspan="3" class="empty">Nenhuma venda sua registrada neste mês</td></tr>`;
+  } else {
+    vendasMes.slice().sort((a,b)=>a.data.localeCompare(b.data)).forEach(v=>{
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${v.data}</td><td>${v.cliente}</td><td>${fmtR(v.valor)}</td>`;
+      tblBody.appendChild(tr);
+    });
+  }
+}
+
+document.querySelectorAll(".tab").forEach(tab=>{
+  tab.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("view-"+tab.dataset.view).classList.add("active");
+  });
+});
+document.getElementById("btnAtualizar").addEventListener("click", loadAll);
+document.getElementById("selMes").addEventListener("change", render);
+document.getElementById("selAno").addEventListener("change", render);
+document.getElementById("btnConectar").addEventListener("click", ()=>{
+  const val = document.getElementById("sheetIdInput").value.trim();
+  if(val){ sheetId = val; localStorage.setItem("td_sheet_id_" + MEU_NOME, val); loadAll(); }
+});
+document.getElementById("btnEntrar").addEventListener("click", ()=>{
+  const nome = document.getElementById("selQuemSou").value;
+  if(nome) abrirPainel(nome);
+});
+
+if(MEU_NOME){
+  abrirPainel(MEU_NOME);
+} else {
+  document.getElementById("gate").style.display = "block";
+}
+</script>
+</body>
+</html>
